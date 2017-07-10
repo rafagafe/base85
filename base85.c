@@ -151,15 +151,12 @@ static void* ultobe( void* dest, unsigned long value ) {
 /* Convert a base85 string to binary format. */
 void* b85tobin( void* dest, char const* src ) {
 
-    for( unsigned char const* s = (unsigned char const*)src;; ++s ) {
+    for( unsigned char const* s = (unsigned char const*)src;; ) {
 
-        unsigned int const bin = digittobin[ *s ];
-        if ( bin == notadigit ) return dest;
-        unsigned long value = bin * pow85[ 0 ];
-
-        for( unsigned int i = 1; i < sizeof pow85 / sizeof *pow85; ++i ) {
-            unsigned int const bin = digittobin[ *++s ];
-            if ( bin == notadigit ) return 0;
+        unsigned long value = 0;
+        for( unsigned int i = 0; i < sizeof pow85 / sizeof *pow85; ++i, ++s ) {
+            unsigned int const bin = digittobin[ *s ];
+            if ( bin == notadigit ) return i == 0 ? dest : 0;
             value += bin * pow85[ i ];
         }
 
