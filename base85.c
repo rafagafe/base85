@@ -98,16 +98,16 @@ static char const* const littleEndian = (char const*)&endianness;
   * @param src Pointer to array of bytes.
   * @param sz Size in bytes of array from 0 until 4.
   * @return  The unsigned long value. */
-static unsigned long betoul( void const* src, unsigned int sz ) {
+static unsigned long betoul( void const* src, int sz ) {
 
     unsigned long value = 0;
     char* const d = (char*)&value;
     char const* const s = (char const*)src;
 
-    for( unsigned int i = 0; i < sz; ++i )
+    for( int i = 0; i < sz; ++i )
         d[ *littleEndian ? 3 - i : i ] = s[ i ];
 
-    for( unsigned int i = sz; i < 4; ++i )
+    for( int i = sz; i < 4; ++i )
         d[ *littleEndian ? 3 - i : i ] = 0;
 
     return value;
@@ -117,13 +117,13 @@ static unsigned long betoul( void const* src, unsigned int sz ) {
 char* bintob85( char* dest, void const* src, size_t size ) {
 
     char const* s = (char const*)src;
-    unsigned int const quartets = size / 4;
-    for( unsigned int i = 0; i < quartets; ++i, s += 4 ) {
+    size_t const quartets = size / 4;
+    for( size_t i = 0; i < quartets; ++i, s += 4 ) {
         unsigned long const value = betoul( s, 4 );
         dest = ultob85( dest, value );
     }
 
-    unsigned int const remainder = size % 4;
+    int const remainder = size % 4;
     if ( remainder ) {
         unsigned long const value = betoul( s, remainder );
         dest = ultob85( dest, value );
@@ -142,7 +142,7 @@ static void* ultobe( void* dest, unsigned long value ) {
     char* const d = (char*)dest;
     char const* const s = (char*)&value;
 
-    for( unsigned int i = 0; i < 4; ++i )
+    for( int i = 0; i < 4; ++i )
         d[ i ] = s[ *littleEndian ? 3 - i : i ];
 
     return d + 4;
@@ -154,7 +154,7 @@ void* b85tobin( void* dest, char const* src ) {
     for( unsigned char const* s = (unsigned char const*)src;; ) {
 
         unsigned long value = 0;
-        for( unsigned int i = 0; i < sizeof pow85 / sizeof *pow85; ++i, ++s ) {
+        for( int i = 0; i < sizeof pow85 / sizeof *pow85; ++i, ++s ) {
             unsigned int const bin = digittobin[ *s ];
             if ( bin == notadigit ) return i == 0 ? dest : 0;
             value += bin * pow85[ i ];

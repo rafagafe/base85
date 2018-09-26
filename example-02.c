@@ -17,9 +17,7 @@
  *
  */
 
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "base85.h"
 
@@ -45,16 +43,16 @@ int main( void ) {
     char* const end = b85decode( buffer );
     if ( !end ) {
         fputs( "Bad base85 format.", stderr );
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    bool const equal = !strcmp( plain, buffer );
+    int const equal = !strcmp( plain, buffer );
     if( !equal ) {
         fputs( "The output is different from the input.\n", stderr );
-        return EXIT_FAILURE;
+        return -1;
     }
 
     puts( buffer );
 
-    return EXIT_SUCCESS;
+    return 0;
 }

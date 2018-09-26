@@ -17,10 +17,7 @@
  *
  */
 
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "base85.h"
 
@@ -33,8 +30,8 @@
  * 7) Compare 'binary' with 'output'. */
 int main( void ) {
 
-    uint8_t binary[64];
-    for( unsigned int i = 0; i < 64; ++i )
+    char binary[64];
+    for( int i = 0; i < 64; ++i )
         binary[i] = i;
 
     char base85[128];
@@ -42,24 +39,24 @@ int main( void ) {
 
     printf( "%s%s%s", "The base85: '", base85, "'.\n" );
 
-    uint8_t output[64];
-    uint8_t* const end = b85tobin( output, base85 );
+    char output[64];
+    char* const end = b85tobin( output, base85 );
     if ( !end ) {
         fputs( "Bad base85 format.", stderr );
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    unsigned int const outputlen = end - output;
+    int const outputlen = end - output;
     if ( outputlen != sizeof binary ) {
         fputs( "The length of the output is not as expected.\n", stderr );
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    bool const equal = !memcmp( binary, output, sizeof binary );
+    int const equal = !memcmp( binary, output, sizeof binary );
     if( !equal ) {
         fputs( "The output is different from the input.\n", stderr );
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
