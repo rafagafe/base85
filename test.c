@@ -19,19 +19,41 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include "base85.h"
 
+
+// ----------------------------------------------------- Test "framework": ---
+
 #define done() return 0
-
 #define fail() return __LINE__
+static int checkqty = 0;
+#define check( x ) do { ++checkqty; if (!(x)) fail(); } while ( 0 )
 
-static unsigned int checkqty = 0;
+struct test {
+    int(*func)(void);
+    char const* name;
+};
 
-#define check( x ) { ++checkqty; if (!(x)) fail(); }
+static int test_suit( struct test const* tests, int numtests ) {
+    printf( "%s", "\n\nTests:\n" );
+    int failed = 0;
+    for( int i = 0; i < numtests; ++i ) {
+        printf( " %02d%s%-25s ", i, ": ", tests[i].name );
+        int linerr = tests[i].func();
+        if ( 0 == linerr )
+            printf( "%s", "OK\n" );
+        else {
+            printf( "%s%d\n", "Failed, line: ", linerr );
+            ++failed;
+        }
+    }
+    printf( "\n%s%d\n", "Total checks: ", checkqty );
+    printf( "%s[ %d / %d ]\r\n\n\n", "Tests PASS: ", numtests - failed, numtests );
+    return failed;
+}
 
 
+// ----------------------------------------------------------- Unit tests: ---
 
 static int allDigits( void ) {
 
@@ -40,13 +62,13 @@ static int allDigits( void ) {
                                  "abcdefghijklmnopqrstuvwxyz"
                                  "!#$%&()*+-;<=>?@^_`{|}~";
 
-    unsigned char binary[68];
-    unsigned char* const end = b85tobin( binary, digits );
+    char binary[68];
+    char* const end = b85tobin( binary, digits );
     check( end );
 
-    unsigned int const binarylen = end - binary;
-    unsigned int const digitslen = sizeof digits - 1;
-    unsigned int const calclen   = 4 * digitslen / 5;
+    int const binarylen = end - binary;
+    int const digitslen = sizeof digits - 1;
+    int const calclen   = 4 * digitslen / 5;
     check( binarylen == calclen );
 
     char base85[85];
@@ -58,13 +80,12 @@ static int allDigits( void ) {
     done();
 }
 
-static size_t bintob85size( size_t binsz ) {
-    size_t const regularSize = 5 * ( binsz / 4 );
-    unsigned int const remainder = binsz % 4;
-    unsigned int const extraSize = remainder? 5: 0;
+static int bintob85size( int binsz ) {
+    int const regularSize = 5 * ( binsz / 4 );
+    int const remainder = binsz % 4;
+    int const extraSize = remainder? 5: 0;
     return regularSize + extraSize;
 }
-
 
 static int aliasing ( void ) {
 
@@ -74,8 +95,8 @@ static int aliasing ( void ) {
     char* const nullchar = bintob85( base85, message, sizeof message );
     check( nullchar );
     check( '\0' == *nullchar );
-    unsigned int const len = nullchar - base85;
-    unsigned int const expectlen = bintob85size( sizeof message );
+    int const len = nullchar - base85;
+    int const expectlen = bintob85size( sizeof message );
     check( len == expectlen );
 
     char* end = b85decode( base85 );
@@ -85,56 +106,38 @@ static int aliasing ( void ) {
     done();
 }
 
-
-
 int badformats( void ) {
     {
         static char const base85[] = { 0 };
-        uint8_t binary[5];
-        uint8_t* end = b85tobin( binary, base85 );
+        char binary[5];
+        char* end = b85tobin( binary, base85 );
         check( end == binary );
     }
     {
         static char const base85[] = {  '0', -1, '1', '2',  '3', 0 };
-        uint8_t binary[32];
-        uint8_t* end = b85tobin( binary, base85 );
+        char binary[32];
+        char* end = b85tobin( binary, base85 );
         check( !end );
     }
     {
         static char const base85[] = "aaaaaa";
-        uint8_t binary[32];
-        uint8_t* end = b85tobin( binary, base85 );
+        char binary[32];
+        char* end = b85tobin( binary, base85 );
         check( !end );
     }
     done();
 }
 
-struct test {
-    int(*func)(void);
-    char const* name;
-};
 
-static int test_exec( struct test const* test ) {
-    int const err = test->func();
-    if ( err ) {
-        fprintf( stderr, "%s%s%s%d%s", "Failed test: '", test->name, "' Line: ", err, ".\n" );
-        return 1;
-    }
-    return 0;
-}
-
-static struct test const tests[] = {
-    { allDigits,   "All digits"        },
-    { aliasing,    "Aliasing"          },
-    { badformats,  "Bad Formats"       },
-};
+// --------------------------------------------------------- Execute tests: ---
 
 int main( void ) {
-    int failed = 0;
-    unsigned int const qty = sizeof tests / sizeof *tests;
-    for( unsigned int i = 0; i < qty; ++i )
-        failed += test_exec( tests + i );
-    unsigned int const percent = 100.0 * ( qty - failed ) / qty;
-    printf( "%d%s%d%s", percent, "%. ", checkqty, " checks.\n" );
-    return failed;
+    static struct test const tests[] = {
+        { allDigits,   "All digits"        },
+        { aliasing,    "Aliasing"          },
+        { badformats,  "Bad Formats"       }
+    };
+    return test_suit( tests, sizeof tests / sizeof *tests );
 }
+
+
