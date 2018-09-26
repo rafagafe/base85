@@ -1,4 +1,6 @@
 # Base85
+[![Build Status](https://travis-ci.org/rafagafe/base85.svg?branch=master)](https://travis-ci.org/rafagafe/base85)
+
 Base85 is a C library to convert from plain to base 85 and vice versa suitable for embedded systems. It uses the character set of the Base85 RFC 1924.
 
 
