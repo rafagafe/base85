@@ -21,13 +21,13 @@ test.exe: test.o base85.o
 	gcc -o test.exe test.o base85.o
 
 base85.o: base85.c base85.h
-	gcc -c base85.c
+	gcc -std=c99 -c base85.c
 
 example-01.o: example-01.c base85.h
-	gcc -c example-01.c
+	gcc -std=c99 -c example-01.c
 
 example-02.o: example-02.c base85.h
-	gcc -c example-02.c
+	gcc -std=c99 -c example-02.c
 
 test.o: test.c base85.h
-	gcc -c test.c
+	gcc -std=c99 -c test.c
