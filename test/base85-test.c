@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "base85.h"
+#include "../base85.h"
 
 
 // ----------------------------------------------------- Test "framework": ---

@@ -4,7 +4,7 @@
      
   Licensed under the MIT License <http://opensource.org/licenses/MIT>.
   SPDX-License-Identifier: MIT
-  Copyright (c) 2018 Rafa Garcia <rafagarcia77@gmail.com>.
+  Copyright (c) 2016-2018 Rafa Garcia <rafagarcia77@gmail.com>.
   Permission is hereby  granted, free of charge, to any  person obtaining a copy
   of this software and associated  documentation files (the "Software"), to deal
   in the Software  without restriction, including without  limitation the rights
@@ -25,44 +25,40 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "base85.h"
+#include "../base85.h"
 
-/* 1) Fill an array named 'binary'.
- * 2) Convert 'binary' in base85 format in an array named 'base85'.
- * 3) Print 'base85'.
- * 4) Convert 'base85' in binary format in an array named 'output'.
- * 5) Check if the conversion was successful.
- * 6) Check the length of 'output'.
- * 7) Compare 'binary' with 'output'. */
+/* 1) A null-terminated string is stored in an array named 'plain'.
+ * 2) The text in 'plain' is printed.
+ * 3) Convert 'plain' in base85 format in an array named 'buffer'.
+ * 4) Print 'buffer'.
+ * 5) Convert 'buffer' in plain text in the same array 'buffer'.
+ * 6) Check if the conversion was successful.
+ * 7) Check the length of 'buffer'.
+ * 8) Compare 'plain' with 'buffer'.
+ * 9) Print the plain text stored in 'buffer'. */
 int main( void ) {
 
-    char binary[64];
-    for( int i = 0; i < 64; ++i )
-        binary[i] = i;
+    static char const plain[] = "This is a plain text.";
+    puts( plain );
 
-    char base85[128];
-    bintob85( base85, binary, sizeof binary );
+    char buffer[128];
+    bintob85( buffer, plain, sizeof plain );
 
-    printf( "%s%s%s", "The base85: '", base85, "'.\n" );
+    printf( "%s%s%s", "The base85: '", buffer, "'.\n" );
 
-    char output[64];
-    char* const end = b85tobin( output, base85 );
+    char* const end = b85decode( buffer );
     if ( !end ) {
         fputs( "Bad base85 format.", stderr );
         return -1;
     }
 
-    int const outputlen = end - output;
-    if ( outputlen != sizeof binary ) {
-        fputs( "The length of the output is not as expected.\n", stderr );
-        return -1;
-    }
-
-    int const equal = !memcmp( binary, output, sizeof binary );
+    int const equal = !strcmp( plain, buffer );
     if( !equal ) {
         fputs( "The output is different from the input.\n", stderr );
         return -1;
     }
+
+    puts( buffer );
 
     return 0;
 }
