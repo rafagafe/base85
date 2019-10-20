@@ -1,7 +1,7 @@
 
 /*
 <https://github.com/rafagafe/base85>
-     
+
   Licensed under the MIT License <http://opensource.org/licenses/MIT>.
   SPDX-License-Identifier: MIT
   Copyright (c) 2016-2018 Rafa Garcia <rafagarcia77@gmail.com>.
@@ -20,7 +20,7 @@
   LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-    
+
 */
 
 #include "base85.h"
@@ -41,7 +41,7 @@ static char const bintodigit[] = {
 };
 
 /** Escape values. */
-enum escape_e {
+enum escape {
     notadigit = 85u /**< Return value when a non-digit-base-85 is found. */
 };
 
@@ -65,23 +65,21 @@ static unsigned char const digittobin[] = {
     85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85,
 };
 
-/** Some powers of 85. */
-enum p855_e {
-    p850 = 1ul,         /*< 85^0 */
-    p851 = 85ul,        /*< 85^1 */
-    p852 = p851 * p851, /*< 85^2 */
-    p853 = p851 * p852, /*< 85^3 */
-    p854 = p851 * p853, /*< 85^4 */
-};
+/* Some powers of 85. */
+#define p850 1ul           /*< 85^0 */
+#define p851 85ul          /*< 85^1 */
+#define p852 (p851 * p851) /*< 85^2 */
+#define p853 (p851 * p852) /*< 85^3 */
+#define p854 (p851 * p853) /*< 85^4 */
+
 
 /** Powers of 85 list. */
 static unsigned long const pow85[] = { p854, p853, p852, p851, p850 };
 
 /** Converts a integer of 4 bytes in 5 digits of base 85.
   * @param dest Memory block where to put the 5 digits of base 85.
-  * @param value Value of the integer of 4 bytes.
-  * @return dest + 5. */
-static char* ultob85( char* dest, unsigned int long value ) {
+  * @param value Value of the integer of 4 bytes. */
+static void ultob85( char* dest, unsigned int long value ) {
 
     unsigned int const digitsQty = sizeof pow85 / sizeof *pow85;
 
@@ -90,8 +88,6 @@ static char* ultob85( char* dest, unsigned int long value ) {
         dest[ i ] = bintodigit[ bin ];
         value -= bin * pow85[ i ];
     }
-
-    return dest + digitsQty;
 }
 
 /** Helper constant to get the endianness of the running machine. */
@@ -119,24 +115,23 @@ static unsigned long betoul( void const* src, int sz ) {
     return value;
 }
 
-/* Convert a binary memory block in a base85 null-terminated string. */
-char* bintob85( char* dest, void const* src, size_t size ) {
+char* bintob85( char* restrict dest, void const* restrict src, size_t size ) {
 
-    char const* s = (char const*)src;
     size_t const quartets = size / 4;
-    for( size_t i = 0; i < quartets; ++i, s += 4 ) {
-        unsigned long const value = betoul( s, 4 );
-        dest = ultob85( dest, value );
-    }
+    char const* s = (char*)src + 4 * quartets;
+    dest += 5 * quartets;
 
     int const remainder = size % 4;
-    if ( remainder ) {
-        unsigned long const value = betoul( s, remainder );
-        dest = ultob85( dest, value );
-    }
+    if ( remainder )
+        ultob85( dest, betoul( s, remainder ) );
 
-    *dest = '\0';
-    return dest;
+    char* rslt = dest + ( remainder ? 5 : 0 );
+    *rslt = '\0';
+
+    for( size_t i = 0; i < quartets; ++i )
+        ultob85( dest -= 5, betoul( s -= 4, 4 ) );
+
+    return rslt;
 }
 
 /** Copy a unsigned long in a big-endian array of 4 bytes.
@@ -155,14 +150,15 @@ static void* ultobe( void* dest, unsigned long value ) {
 }
 
 /* Convert a base85 string to binary format. */
-void* b85tobin( void* dest, char const* src ) {
+void* b85tobin( void* restrict dest, char const* restrict src ) {
 
     for( unsigned char const* s = (unsigned char const*)src;; ) {
 
         unsigned long value = 0;
         for( int i = 0; i < sizeof pow85 / sizeof *pow85; ++i, ++s ) {
             unsigned int const bin = digittobin[ *s ];
-            if ( bin == notadigit ) return i == 0 ? dest : 0;
+            if ( bin == notadigit )
+                return i == 0 ? dest : 0;
             value += bin * pow85[ i ];
         }
 

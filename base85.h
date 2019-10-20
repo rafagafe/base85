@@ -1,7 +1,7 @@
 
 /*
 <https://github.com/rafagafe/base85>
-     
+
   Licensed under the MIT License <http://opensource.org/licenses/MIT>.
   SPDX-License-Identifier: MIT
   Copyright (c) 2016-2018 Rafa Garcia <rafagarcia77@gmail.com>.
@@ -20,11 +20,11 @@
   LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-    
+
 */
 
-#ifndef _BASE85_H_
-#define	_BASE85_H_
+#ifndef BASE85_H
+#define	BASE85_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,14 +44,14 @@ extern "C" {
   * @param src Source binary memory block.
   * @param size Size in bytes of source binary memory block.
   * @return A pointer to the null character of the base85 null-terminated string. */
-char* bintob85( char* dest, void const* src, size_t size );
+char* bintob85( char* restrict dest, void const* restrict src, size_t size );
 
 /** Convert a base85 string to binary format.
   * @param dest Destination memory block.
   * @param src Source base85 string.
   * @return If success a pointer to the next byte in memory block.
   *         Null if string has a bad format.  */
-void* b85tobin( void* dest, char const* src );
+void* b85tobin( void* restrict dest, char const* restrict src );
 
 /** Convert a base85 string to binary format.
   * @param p Source base85 string and destination memory block.
@@ -61,10 +61,14 @@ static inline void* b85decode( void* p ) {
     return b85tobin( p, (char*)p );
 }
 
+static inline char* b85encode( void* p, size_t size ) {
+    return bintob85( (char*)p, p, size );
+}
+
 /** @ } */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif	/* _BASE85_H_ */
+#endif	/* BASE85_H */

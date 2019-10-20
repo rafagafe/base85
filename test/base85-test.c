@@ -1,7 +1,7 @@
 
 /*
 <https://github.com/rafagafe/base85>
-     
+
   Licensed under the MIT License <http://opensource.org/licenses/MIT>.
   SPDX-License-Identifier: MIT
   Copyright (c) 2016-2018 Rafa Garcia <rafagarcia77@gmail.com>.
@@ -20,7 +20,7 @@
   LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-    
+
 */
 
 #include <stdio.h>
@@ -98,7 +98,8 @@ static int aliasing ( void ) {
     static char const message[] = "Aliasing";
 
     char base85[32];
-    char* const nullchar = bintob85( base85, message, sizeof message );
+    memcpy( base85, message, sizeof message );
+    char* const nullchar = b85encode( base85, sizeof message );
     check( nullchar );
     check( '\0' == *nullchar );
     int const len = nullchar - base85;
@@ -145,5 +146,3 @@ int main( void ) {
     };
     return test_suit( tests, sizeof tests / sizeof *tests );
 }
-
-
